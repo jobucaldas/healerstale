@@ -174,18 +174,18 @@ void draw_gameover(Clock clock,int* current_scr, Texture* textures, RenderWindow
 		cout << "Error loading fonts" << endl;
 		scanf("%*c");
 	}
-	IntRect die(0, 0, 800, 600);
-	Sprite died(textures[13], die);
-	died.setPosition(0, 0);
-	died.setScale((*window).getSize().x/800.0, (*window).getSize().y / 600.0);
-	animate(clock, &die, &died, 800, 600, 4, 0, 10);
+	IntRect die(0, 0, 300, 300);
+	Sprite died(textures[0], die);
+	died.setPosition((*window).getSize().x/2-died.getGlobalBounds().width/2, (*window).getSize().y/2-died.getGlobalBounds().height/2);
+	//died.setScale((*window).getSize().x/300.0, (*window).getSize().y / 300.0);
+	//animate(clock, &die, &died, 800, 600, 4, 0, 10);
 	(*window).draw(died);
 
 	Text gameover;
 	gameover.setFont(font);
-	gameover.setString("Você Perdeu!");
+	gameover.setString("Voce Perdeu\n  o Jogo!");
 	gameover.setCharacterSize((*window).getSize().y * 0.08);
-	gameover.setPosition((*window).getSize().x / 2 - gameover.getGlobalBounds().width / 2, (*window).getSize().y / 2 / 2 - (*window).getSize().y * 0.08 / 2);
+	gameover.setPosition((*window).getSize().x / 2 - gameover.getGlobalBounds().width / 2, (*window).getSize().y / 2 / 2 / 2);
 	Text menu;
 	menu.setFont(font);
 	menu.setString("Voltar ao menu");
@@ -236,8 +236,8 @@ void draw_credits_gamso(RenderWindow *window) {
 	texture.setSmooth(false);
 	Sprite sprite;
 	sprite.setTexture(texture);
-	sprite.setScale((*window).getSize().y / sprite.getLocalBounds().width, (*window).getSize().y / sprite.getLocalBounds().height);
-	sprite.setPosition((*window).getSize().x/2-sprite.getGlobalBounds().width/2-22, 0);
+	sprite.setScale(((*window).getSize().y - 200) / sprite.getLocalBounds().width, ((*window).getSize().y - 200) / sprite.getLocalBounds().height);
+	sprite.setPosition((*window).getSize().x/2-sprite.getGlobalBounds().width/2, (*window).getSize().y/2-sprite.getGlobalBounds().height/2);
 
 	(*window).draw(credits);
 	(*window).draw(sprite);
@@ -257,7 +257,7 @@ void draw_credits(int* current_scr, RenderWindow *window) {
 	voltar.setPosition((*window).getSize().x*0.02, (*window).getSize().y*0.5 + (*window).getSize().y * 0.08 * 5);
 	Text credits;
 	credits.setFont(font);
-	credits.setString("");
+	credits.setString("Hiagod Pau de Fimoser");
 	credits.setCharacterSize((*window).getSize().y * 0.05);
 	credits.setPosition((*window).getSize().x/2-credits.getGlobalBounds().width/2, (*window).getSize().y/2-credits.getGlobalBounds().height/2);
 
@@ -278,19 +278,17 @@ void draw_scr(Texture* textures,double delta,Clock clock,int* current_scr, Rende
 	 *  0 - Menu
 	 *  1 - Game
 	 *  2 - Credits
-		3-  F
+	 *  3 - F
 	 */
 
 	switch (*current_scr) {
 	case 0:
-		draw_menu(current_scr,textures, window);
+		draw_menu(current_scr, textures, window);
 		for (int i = 0; i < 10; i++)
 			propLine[i] = 0;
 		break;
 	case 1:
-		while(true){
-			break;
-		}
+		draw_gameover(clock,current_scr, textures,window,propLine);
 		//draw_game(sound,textures,delta, clock,current_scr, window, event, cursorLine, propLine);
 		break;
 	case 2:
@@ -306,7 +304,13 @@ void draw_scr(Texture* textures,double delta,Clock clock,int* current_scr, Rende
 
 Texture* load_textures() {
 	Texture *textures;
-	textures=(Texture*)malloc(sizeof(Texture) * 15);
+	textures=(Texture*)malloc(sizeof(Texture) * 1);
+
+	Texture gameover;
+	if (!gameover.loadFromFile("img/gameover.jpg", sf::IntRect(0, 0, 300, 300))) {
+		perror("failed to load gameover image");
+		scanf("%*c");
+	}
 
 	/*
 	Texture end;
@@ -316,6 +320,7 @@ Texture* load_textures() {
 	}
 	*/
 
+	textures[0] = gameover;
 	//textures[0] = shadowsheet;
 	return textures;
 
@@ -334,6 +339,7 @@ int main(void) {
 	textures = load_textures();
 	Sprite cursor(textures[5]);
 	IntRect cursorRect(0,50,50,50);
+	/*
 	SoundBuffer walk,bgm;
 	if (!walk.loadFromFile("sound/walk.wav")) {
 		cout << "Error loading sound" << endl;
@@ -343,10 +349,12 @@ int main(void) {
 		cout << "Error loading sound" << endl;
 		scanf("%*c");
 	}
+	*/
 	Sound sound,bg;
+	/*
 	sound.setBuffer(walk);
 	bg.setBuffer(bgm);
-
+	*/
 	double nt,ot=0,delta;
 	while( window.isOpen()) {
 
@@ -368,10 +376,12 @@ int main(void) {
 			draw_credits_gamso(&window);
 		else {
 			draw_scr(textures, delta, clock, current_scr, &window, event, &sound, &cursorLine, propLine);
+			/*
 			if (bg.getStatus() != bg.Playing && *current_scr == 1)
 				bg.play();
 			else if (bg.getStatus() == bg.Playing && *current_scr == 0)
 				bg.stop();
+			*/
 		}
 		cursorRect.top = 50 * cursorLine;
 		cursor.setTextureRect(cursorRect);
