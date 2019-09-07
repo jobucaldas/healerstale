@@ -261,18 +261,19 @@ void draw_credits_gamso(RenderWindow *window) {
 	(*window).draw(sprite);
 }
 
-void draw_credits(int* current_scr, RenderWindow *window) {
+void draw_credits(int* current_scr, Texture* textures, RenderWindow *window) {
 	// Create text
 	Font font;
 	if (!font.loadFromFile("fonts/pc98.ttf")) {
 		cout << "Error loading fonts" << endl;
 		scanf("%*c");
 	}
-	Text voltar;
-	voltar.setFont(font);
-	voltar.setString("Voltar");
-	voltar.setCharacterSize((*window).getSize().y * 0.05);
-	voltar.setPosition((*window).getSize().x*0.02, (*window).getSize().y*0.5 + (*window).getSize().y * 0.08 * 5);
+	IntRect voltar_rect(0,0,32,32);
+	Sprite voltar;
+	voltar.setTextureRect(voltar_rect);
+	voltar.setTexture(textures[2]);
+	voltar.setScale((*window).getSize().x*0.002,(*window).getSize().x*0.002);
+	voltar.setPosition((*window).getSize().x*0.0001, (*window).getSize().x*0.0001);
 	Text credits;
 	credits.setFont(font);
 	credits.setString("Joao Bueno\nMatheus Ramos\nGabriel Penajo\nIsabela Magalhaes");
@@ -281,7 +282,7 @@ void draw_credits(int* current_scr, RenderWindow *window) {
 
 	// Mouse events
 	if (voltar.getGlobalBounds().contains(Mouse::getPosition(*window).x, Mouse::getPosition(*window).y)) {
-		voltar.setFillColor(Color::Magenta);
+		voltar.setColor(Color::Magenta);
 		if (Mouse::isButtonPressed(Mouse::Left))
 			* current_scr = 0;
 	}
@@ -311,7 +312,7 @@ void draw_scr(Texture* textures,double delta,Clock clock,int* current_scr, Rende
 		draw_game(sound, textures,delta, clock, current_scr, window, event);
 		break;
 	case 2:
-		draw_credits(current_scr, window);
+		draw_credits(current_scr, textures, window);
 		break;
 	case 3:
 		draw_gameover(clock,current_scr, textures,window);
@@ -322,8 +323,18 @@ void draw_scr(Texture* textures,double delta,Clock clock,int* current_scr, Rende
 }
 
 Texture* load_textures() {
+	/*
+	 *  0 - Game Over , 300 300 1 1
+	 *  1 - Cursor    , 32  32  1 2
+	 *  2 - Arrow     , 32  32  1 1
+	 *  3 - MC        , 32  32  4 1
+	 *  4 - Bat       , 32  32  6 1
+	 *  5 - Butterfly , 32  32  6 1
+	 *  6 - Heal      , 32  32  3 1
+	 */
+
 	Texture *textures;
-	textures=(Texture*)malloc(sizeof(Texture) * 3);
+	textures=(Texture*)malloc(sizeof(Texture) * 6);
 
 	Texture gameover;
 	if (!gameover.loadFromFile("img/gameover.jpg", sf::IntRect(0, 0, 300, 300))) {
@@ -340,22 +351,46 @@ Texture* load_textures() {
 		perror("failed to load back_arrow image");
 		scanf("%*c");
 	}
+	Texture mc;
+	if (!mc.loadFromFile("img/mc.png", sf::IntRect(0, 0, 32, 128))) {
+		perror("failed to load mc image");
+		scanf("%*c");
+	}
+	Texture bat;
+	if (!bat.loadFromFile("img/bat.png", sf::IntRect(0, 0, 32, 192))) {
+		perror("failed to load bat image");
+		scanf("%*c");
+	}
+	Texture butterfly;
+	if (!butterfly.loadFromFile("img/samurai.png", sf::IntRect(0, 0, 32, 192))) {
+		perror("failed to load samurai image");
+		scanf("%*c");
+	}
+	Texture heal;
+	if (!butterfly.loadFromFile("img/heal.png", sf::IntRect(0, 0, 32, 96))) {
+		perror("failed to load heal image");
+		scanf("%*c");
+	}
 
 	textures[0] = gameover;
 	textures[1] = cursor;
 	textures[2] = back_arrow;
+	textures[3] = mc;
+	textures[4] = bat;
+	textures[5] = butterfly;
+	textures[6] = heal;
 	return textures;
 
 }
 
 int main(void) {
 	int current_scr[1] = { 0 };
-	int cursor_line = 1, old_scr = 0;
+	int cursor_line = 1;
 
 	// Initialize clock
 	Clock clock;
 	// Initialize window
-	RenderWindow window(VideoMode::getDesktopMode(), "Gamsecomp 2019.2", Style::Fullscreen);
+	RenderWindow window(VideoMode::getDesktopMode(), "Healer's Tale", Style::Fullscreen);
 	window.setFramerateLimit(60);
 	window.setMouseCursorVisible(false);
 	Texture* textures;
