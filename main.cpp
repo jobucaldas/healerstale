@@ -6,6 +6,21 @@
 using namespace std;
 using namespace sf;
 
+typedef struct{
+	int x;
+	int y;
+	int hp;
+	IntRect rect;
+} mc;
+
+void mc_initializer(mc* main_char, int x, int y){
+	main_char->hp = 100;
+	main_char->x = x;
+	main_char->y = y;
+	IntRect rect(0,0,16,16);
+	main_char->rect = rect;
+}
+
 int cutscene(Clock clock,IntRect* rectSourceSprite, Sprite* sprite, int sizex, int sizey, int frames, int line ,int fps) {
 	if (((int)(clock.getElapsedTime().asMilliseconds() / (1000.0 / fps))) % (int)sizex < frames) {
 		(*rectSourceSprite).left = ((int)(clock.getElapsedTime().asMilliseconds() / (1000.0 / fps))) % (int)frames * sizex;
@@ -166,9 +181,7 @@ Sprite get_prop(Clock clock, Texture* textures, int line, float x, float y) {
 	return prop;
 }
 
-void draw_gameover(Clock clock,int* current_scr, Texture* textures, RenderWindow* window, int propLine[]) {
-	for (int i = 0; i < 10; i++)
-		propLine[i] = 0;
+void draw_gameover(Clock clock,int* current_scr, Texture* textures, RenderWindow* window) {
 	Font font;
 	if (!font.loadFromFile("fonts/pc98.ttf")) {
 		cout << "Error loading fonts" << endl;
@@ -257,7 +270,7 @@ void draw_credits(int* current_scr, RenderWindow *window) {
 	voltar.setPosition((*window).getSize().x*0.02, (*window).getSize().y*0.5 + (*window).getSize().y * 0.08 * 5);
 	Text credits;
 	credits.setFont(font);
-	credits.setString("Hiagod Pau de Fimoser");
+	credits.setString("Joao Bueno\nMatheus Ramos\nGabriel Penajo\nIsabela Magalhaes");
 	credits.setCharacterSize((*window).getSize().y * 0.05);
 	credits.setPosition((*window).getSize().x/2-credits.getGlobalBounds().width/2, (*window).getSize().y/2-credits.getGlobalBounds().height/2);
 
@@ -273,29 +286,30 @@ void draw_credits(int* current_scr, RenderWindow *window) {
 	(*window).draw(credits);
 }
 
-void draw_scr(Texture* textures,double delta,Clock clock,int* current_scr, RenderWindow *window, Event &event,Sound *sound, int *cursorLine, int *propLine) {
+void draw_game(Sound sound[], Texture* textures, double delta, Clock clock, int* current_scr, RenderWindow *window, Event event){
+
+}
+
+void draw_scr(Texture* textures,double delta,Clock clock,int* current_scr, RenderWindow *window, Event &event,Sound sound[]) {
 	/*
 	 *  0 - Menu
 	 *  1 - Game
 	 *  2 - Credits
-	 *  3 - F
+	 *  3 - Game Over Yeah
 	 */
 
 	switch (*current_scr) {
 	case 0:
 		draw_menu(current_scr, textures, window);
-		for (int i = 0; i < 10; i++)
-			propLine[i] = 0;
 		break;
 	case 1:
-		draw_gameover(clock,current_scr, textures,window,propLine);
-		//draw_game(sound,textures,delta, clock,current_scr, window, event, cursorLine, propLine);
+		draw_game(sound, textures,delta, clock, current_scr, window, event);
 		break;
 	case 2:
 		draw_credits(current_scr, window);
 		break;
 	case 3:
-		draw_gameover(clock,current_scr, textures,window,propLine);
+		draw_gameover(clock,current_scr, textures,window);
 		break;
 	default:
 		break;
@@ -304,57 +318,60 @@ void draw_scr(Texture* textures,double delta,Clock clock,int* current_scr, Rende
 
 Texture* load_textures() {
 	Texture *textures;
-	textures=(Texture*)malloc(sizeof(Texture) * 1);
+	textures=(Texture*)malloc(sizeof(Texture) * 2);
 
 	Texture gameover;
 	if (!gameover.loadFromFile("img/gameover.jpg", sf::IntRect(0, 0, 300, 300))) {
 		perror("failed to load gameover image");
 		scanf("%*c");
 	}
-
-	/*
-	Texture end;
-	if (!end.loadFromFile("img/final.png", sf::IntRect(0, 0, 4800, 3000))) {
-		perror("failed to load final image");
+	Texture cursor;
+	if (!gameover.loadFromFile("img/cursor.png", sf::IntRect(0, 0, 300, 300))) {
+		perror("failed to load cursor image");
 		scanf("%*c");
 	}
-	*/
 
 	textures[0] = gameover;
-	//textures[0] = shadowsheet;
+	textures[1] = cursor;
 	return textures;
 
 }
 
 int main(void) {
-	int current_scr[1] = { 0 }, propLine[10] = {0,0,0,0,0,0,0,0,0,0};
+	int current_scr[1] = { 0 };
+	int cursor_line = 0;
 
 	// Initialize clock
 	Clock clock;
 	// Initialize window
-	RenderWindow window(VideoMode::getDesktopMode(), "Afraid Of The Shadows", Style::Fullscreen);
+	RenderWindow window(VideoMode::getDesktopMode(), "Gamsecomp 2019.2", Style::Fullscreen);
 	window.setFramerateLimit(60);
 	window.setMouseCursorVisible(false);
 	Texture* textures;
 	textures = load_textures();
-	Sprite cursor(textures[5]);
-	IntRect cursorRect(0,50,50,50);
-	/*
-	SoundBuffer walk,bgm;
+	Sprite cursor(textures[0]);
+	IntRect cursorRect(0,0,300,300);
+
+	SoundBuffer walk;
 	if (!walk.loadFromFile("sound/walk.wav")) {
 		cout << "Error loading sound" << endl;
 		scanf("%*c");
 	}
+	SoundBuffer bgm;
 	if (!bgm.loadFromFile("sound/bgm.wav")) {
 		cout << "Error loading sound" << endl;
 		scanf("%*c");
 	}
-	*/
-	Sound sound,bg;
-	/*
-	sound.setBuffer(walk);
+	SoundBuffer speech;
+	if (!speech.loadFromFile("sound/speech.wav")) {
+		cout << "Error loading sound" << endl;
+		scanf("%*c");
+	}
+	Sound sound[4], bg;
+	sound[0].setBuffer(walk);
+	sound[1].setBuffer(speech);
 	bg.setBuffer(bgm);
-	*/
+
 	double nt,ot=0,delta;
 	while( window.isOpen()) {
 
@@ -371,23 +388,20 @@ int main(void) {
 
 
 		window.clear();
-		int cursorLine = 1;
-		if (time.asSeconds() <= 10)
+		if (time.asSeconds() <= 8)
 			draw_credits_gamso(&window);
 		else {
-			draw_scr(textures, delta, clock, current_scr, &window, event, &sound, &cursorLine, propLine);
-			/*
+			draw_scr(textures, delta, clock, current_scr, &window, event, sound);
 			if (bg.getStatus() != bg.Playing && *current_scr == 1)
 				bg.play();
 			else if (bg.getStatus() == bg.Playing && *current_scr == 0)
 				bg.stop();
-			*/
 		}
-		cursorRect.top = 50 * cursorLine;
+		cursorRect.top = 0;
 		cursor.setTextureRect(cursorRect);
 		cursor.setOrigin(20, 20);
 		cursor.setPosition(static_cast<Vector2f>(Mouse::getPosition(window)));
-		animate(clock, &cursorRect, &cursor, 50,50, 3, cursorLine, 4);
+		animate(clock, &cursorRect, &cursor, 300, 300, 2, cursor_line, 4);
 		window.draw(cursor);
 		window.display();
 		ot = nt;
