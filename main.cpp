@@ -597,6 +597,7 @@ void draw_game(Door* door, int* map, character* MC, Sound sound[], Texture* text
 		(MC->x) = (MC->x) + vel / delta;
 		MC->der = 1;
 		MC->f=0;
+		var = 0;
 		if (MC->dir != 1) {
 			MC->dir = 1;
 		}
@@ -605,9 +606,13 @@ void draw_game(Door* door, int* map, character* MC, Sound sound[], Texture* text
 		(MC->x) = (MC->x) - vel / delta;
 		MC->der = 1;
 		MC->f=0;
+		var = 0;
 		if (MC->dir != -1) {
 			MC->dir = -1;
 		}
+	}
+	else {
+		
 	}
 
 	if(MC->sprite.getGlobalBounds().intersects(door_sprite.getGlobalBounds()) && *map >=1&& MC->key ==1){
