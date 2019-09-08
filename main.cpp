@@ -1,28 +1,34 @@
 #include <iostream>
+#include<cstdlib>
 #include <string>
 #include <math.h>
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 using namespace std;
+
 using namespace sf;
 
 typedef struct{
-	int x;
-	int y;
-	int hp;
+	float x;
+	float y;
+	Sprite sprite;
+	float hp;
 	int line;
-	IntRect rect;
+	int dir;
+	IntRect *rect;
 } character;
 
 void character_initializer(character* char_obj, string type, int x, int y){
 	char_obj->hp = 3;
 	char_obj->x = x;
+
 	char_obj->y = y;
+	char_obj->dir = 1;
+	char_obj->rect = &(IntRect (0, 0, 32, 32));
 	if(type.compare("mc"))
 		char_obj->line = 0;
-	IntRect rect(0,0,16,16);
-	char_obj->rect = rect;
+	char_obj->sprite.setOrigin(32 / 2, 32 / 2);
 }
 
 int cutscene(Clock clock,IntRect* rectSourceSprite, Sprite* sprite, int sizex, int sizey, int frames, int line ,int fps) {
@@ -48,7 +54,7 @@ void write(int n, RenderWindow* window,float size, Color c,float x, float y,int 
 	Font font;
 	if (!font.loadFromFile("fonts/pc98.ttf")) {
 		cout << "Error loading fonts" << endl;
-		scanf("%*c");
+		//scanf("%*c");
 	}
 	Text texto;
 	texto.setFont(font);
@@ -129,7 +135,7 @@ void draw_menu(int* current_scr,Texture * textures ,RenderWindow *window) {
 	Font font;
 	if (!font.loadFromFile("fonts/pc98.ttf")) {
 		cout << "Error loading fonts" << endl;
-		scanf("%*c");
+		//scanf("%*c");
 	}
 	Text logo;
 	Text opt1;
@@ -178,19 +184,12 @@ void draw_menu(int* current_scr,Texture * textures ,RenderWindow *window) {
 	(*window).draw(opt3);
 }
 
-Sprite get_prop(Clock clock, Texture* textures, int line, float x, float y) {
-	IntRect propRect(0,0,50,50);
-	Sprite prop(textures[5], propRect);
-	animate(clock, &propRect, &prop, 50, 50, 3, line, 3);
-	prop.setPosition(x, y);
-	return prop;
-}
 
 void draw_gameover(Clock clock,int* current_scr, Texture* textures, RenderWindow* window) {
 	Font font;
 	if (!font.loadFromFile("fonts/pc98.ttf")) {
 		cout << "Error loading fonts" << endl;
-		scanf("%*c");
+		//scanf("%*c");
 	}
 	IntRect die(0, 0, 300, 300);
 	Sprite died(textures[0], die);
@@ -238,7 +237,7 @@ void draw_credits_gamso(RenderWindow *window) {
 	Font font;
 	if (!font.loadFromFile("fonts/pc98.ttf")) {
 		cout << "Error loading fonts" << endl;
-		scanf("%*c");
+		//scanf("%*c");
 	}
 	Text credits;
 	credits.setFont(font);
@@ -266,7 +265,7 @@ void draw_credits(int* current_scr, Texture* textures, RenderWindow *window) {
 	Font font;
 	if (!font.loadFromFile("fonts/pc98.ttf")) {
 		cout << "Error loading fonts" << endl;
-		scanf("%*c");
+		//scanf("%*c");
 	}
 	IntRect voltar_rect(0,0,32,32);
 	Sprite voltar;
@@ -292,11 +291,51 @@ void draw_credits(int* current_scr, Texture* textures, RenderWindow *window) {
 	(*window).draw(credits);
 }
 
-void draw_game(Sound sound[], Texture* textures, double delta, Clock clock, int* current_scr, RenderWindow *window, Event event){
+void draw_game(character* MC, Sound sound[], Texture* textures, double delta, Clock clock, int* current_scr, RenderWindow* window, Event event) {
+	IntRect rec(0,0,32,32);
+	int var=0,vel=7;
+	MC->sprite.setTextureRect(rec);
+	MC->sprite.setTexture(textures[3]);
+	MC->sprite.setPosition((MC->x) * (*window).getSize().x / 800.0, (MC->y) * (*window).getSize().y / 600.0);
+	MC->sprite.setScale((*window).getSize().x/400.0, (*window).getSize().y / 300.0);
+	animate(clock, (&rec), &(MC->sprite), 32, 32, 4, 0, 5);
+	if(Keyboard::isKeyPressed(Keyboard::W)){
+		MC->y = (MC->y) -  vel/delta;
+		
 
+	}
+	else if (Keyboard::isKeyPressed(Keyboard::S)) {
+		(MC->y) = (MC->y) + vel/delta;
+	
+	}
+	else {
+		var = 1;
+	}
+	if (Keyboard::isKeyPressed(Keyboard::D)) {
+		(MC->x) = (MC->x) + vel/delta;
+		if (MC->dir==-1) {
+			MC->dir = 1;
+		}
+	}
+	else if (Keyboard::isKeyPressed(Keyboard::A)) {
+		(MC->x) = (MC->x) -  vel/delta;
+		if (MC->dir == 1) {
+			MC->dir = -1;
+
+		}
+		
+	}
+	else if(var==1) {
+		
+		rec.left = 32;
+		MC->sprite.setTextureRect(rec);
+	}
+	MC->sprite.scale(MC->dir, 1);
+
+	(*window).draw(MC->sprite);
 }
 
-void draw_scr(Texture* textures,double delta,Clock clock,int* current_scr, RenderWindow *window, Event &event,Sound sound[]) {
+void draw_scr(character* MC, Texture* textures, double delta, Clock clock, int* current_scr, RenderWindow* window, Event& event, Sound sound[]) {
 	/*
 	 *  0 - Menu
 	 *  1 - Game
@@ -309,7 +348,7 @@ void draw_scr(Texture* textures,double delta,Clock clock,int* current_scr, Rende
 		draw_menu(current_scr, textures, window);
 		break;
 	case 1:
-		draw_game(sound, textures,delta, clock, current_scr, window, event);
+		draw_game(MC,sound, textures,delta, clock, current_scr, window, event);
 		break;
 	case 2:
 		draw_credits(current_scr, textures, window);
@@ -334,42 +373,42 @@ Texture* load_textures() {
 	 */
 
 	Texture *textures;
-	textures=(Texture*)malloc(sizeof(Texture) * 6);
+	textures=(Texture*)malloc(sizeof(Texture) * 7);
 
 	Texture gameover;
 	if (!gameover.loadFromFile("img/gameover.jpg", sf::IntRect(0, 0, 300, 300))) {
 		perror("failed to load gameover image");
-		scanf("%*c");
+		//scanf("%*c");
 	}
 	Texture cursor;
 	if (!cursor.loadFromFile("img/cursor.png", sf::IntRect(0, 0, 32, 64))) {
 		perror("failed to load cursor image");
-		scanf("%*c");
+		//scanf("%*c");
 	}
 	Texture back_arrow;
 	if (!back_arrow.loadFromFile("img/arrow.png", sf::IntRect(0, 0, 32, 32))) {
 		perror("failed to load back_arrow image");
-		scanf("%*c");
+		//scanf("%*c");
 	}
 	Texture mc;
-	if (!mc.loadFromFile("img/mc.png", sf::IntRect(0, 0, 32, 128))) {
+	if (!mc.loadFromFile("img/mc.png", sf::IntRect(0, 0, 128, 32))) {
 		perror("failed to load mc image");
-		scanf("%*c");
+		//scanf("%*c");
 	}
 	Texture bat;
-	if (!bat.loadFromFile("img/bat.png", sf::IntRect(0, 0, 32, 192))) {
+	if (!bat.loadFromFile("img/bat.png", sf::IntRect(0, 0, 192, 32))) {
 		perror("failed to load bat image");
-		scanf("%*c");
+		//scanf("%*c");
 	}
 	Texture butterfly;
-	if (!butterfly.loadFromFile("img/samurai.png", sf::IntRect(0, 0, 32, 192))) {
+	if (!butterfly.loadFromFile("img/samurai.png", sf::IntRect(0, 0, 192, 32))) {
 		perror("failed to load samurai image");
-		scanf("%*c");
+		//scanf("%*c");
 	}
 	Texture heal;
-	if (!butterfly.loadFromFile("img/heal.png", sf::IntRect(0, 0, 32, 96))) {
+	if (!butterfly.loadFromFile("img/heal.png", sf::IntRect(0, 0, 92, 32))) {
 		perror("failed to load heal image");
-		scanf("%*c");
+		//scanf("%*c");
 	}
 
 	textures[0] = gameover;
@@ -397,21 +436,22 @@ int main(void) {
 	textures = load_textures();
 	Sprite cursor(textures[1]);
 	IntRect cursorRect(0,0,32,32);
-
+	character MC;
+	character_initializer(&MC, "mc", 200, 200);
 	SoundBuffer walk;
 	if (!walk.loadFromFile("sound/walk.wav")) {
 		cout << "Error loading sound" << endl;
-		scanf("%*c");
+		//scanf("%*c");
 	}
 	SoundBuffer bgm;
-	if (!bgm.loadFromFile("sound/bgm.wav")) {
+	if (!bgm.loadFromFile("sound/bgm.ogg")) {
 		cout << "Error loading sound" << endl;
-		scanf("%*c");
+		//scanf("%*c");
 	}
 	SoundBuffer speech;
 	if (!speech.loadFromFile("sound/speech.wav")) {
 		cout << "Error loading sound" << endl;
-		scanf("%*c");
+		//scanf("%*c");
 	}
 	Sound sound[4], bg;
 	sound[0].setBuffer(walk);
@@ -437,7 +477,7 @@ int main(void) {
 		if (time.asSeconds() <= 8)
 			draw_credits_gamso(&window);
 		else {
-			draw_scr(textures, delta, clock, current_scr, &window, event, sound);
+			draw_scr(&MC,textures, delta, clock, current_scr, &window, event, sound);
 			if (bg.getStatus() != bg.Playing && *current_scr == 1)
 				bg.play();
 			else if (bg.getStatus() == bg.Playing && *current_scr == 0)
