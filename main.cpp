@@ -20,7 +20,22 @@ typedef struct {
 	IntRect* rect;
 } bullet;
 
+typedef struct {
+	int en;
+	float x;
+	float y;
+	Sprite sprite;
+	float hp;
+	int line;
+	int type;
+	IntRect* rect;
+} mnst;
+
+
+
+
 typedef struct{
+	int en;
 	bullet b;
 	float x;
 	float y,py;
@@ -30,14 +45,64 @@ typedef struct{
 	float hp;
 	int line;
 	int dir;
+	mnst* m;
+	int bats;
 	IntRect *rect;
 } character;
 
+void init_m( mnst* m, int n) {
+	for (int i = 0; i < n; i++) {
+		m[i].en=0;
+		m[i].x=0;
+		m[i].y=0;
+		m[i].sprite;
+		m[i].hp=2;
+		m[i].line=0;
+		m[i].rect=&IntRect(0,0,32,32);
+	}
+
+}
+void spawn_m(mnst* m, int n,int type,RenderWindow* window) {
+	
+	for (int i = 0; i < n; i++) {
+		if (m[i].en == 0) {
+			m[i].sprite.setColor(Color::White);
+			m[i].en = 1;
+			m[i].x = rand() % window->getSize().x;
+			m[i].y = rand() % window->getSize().y;
+			m[i]. type = type;
+			m[i].hp = 2;
+			break;
+		}
+		
+	}
+}
+
+void move_m(character* MC,mnst* m, int n, double delta, RenderWindow * window) {
+	float j,k;
+	
+	for (int i = 0; i < n; i++) {
+		if (m[i].en == 1) {
+			j = MC->x - m[i].x;
+			k = MC->y * window->getSize().y / 600.0 - m[i].y;
+			m[i].x = m[i].x + (j / abs(j))*5 / delta;
+			m[i].y = m[i].y + (k / abs(k) *5/ delta);
+			m[i].sprite.setPosition(m[i].x * window->getSize().x / 800.0, m[i].y+MC->py);
+
+		
+
+		}
+	}
+}
 
 void character_initializer(character* char_obj, string type, int x, int y){
+	char_obj->m = new mnst[10];
+	init_m(char_obj->m, 10);
 	char_obj->hp = 3;
 	char_obj->x = x;
+	char_obj->en = 1;
 	char_obj->wy = y;
+	char_obj->bats = 0;
 	char_obj->y = y;
 	char_obj->dir = 1;
 	char_obj->der = 1;
@@ -45,6 +110,7 @@ void character_initializer(character* char_obj, string type, int x, int y){
 	IntRect rectangular_shape(0, 0, 32, 32);
 	char_obj->b.rect = &rectangular;
 	char_obj->rect = &rectangular_shape;
+	char_obj->sprite.setOrigin(-200, 16);
 	if(type.compare("mc"))
 		char_obj->line = 0;
 	char_obj->sprite.setOrigin(32 / 2, 32 / 2);
@@ -65,7 +131,7 @@ void spawn_b(character * MC) {
 			MC->b.dir = 2;
 		}
 
-		MC->b.x = MC->b.ox + MC->b.dir * 30;
+		MC->b.x = MC->b.ox - MC->b.dir * 30;
 		MC->b.y = MC->b.oy - (1 - MC->der) * 30;
 		MC->b.en = 1;
 		float var = MC->sprite.getPosition().y - MC->b.y - MC->py;
@@ -90,14 +156,24 @@ void move_b(character * MC, double delta) {
 	}
 }
 
-void destroy_b(character* MC, double delta, RenderWindow * window) {
-	if (MC->b.x < -5 || MC->b.x > window->getSize().x)
+void destroy_b(character* MC, mnst* m, int n,double delta, RenderWindow* window) {
+	float w = MC->b.y;
+	if (MC->b.x < -15 || MC->b.x > window->getSize().x)
 		MC->b.en = 0;
-	if (MC->b.y < -5)
+	if (w < -15)
 		MC->b.en = 0;
-	//if (collision_b(MC->b.x, MC->b.y, asas))
-		//MC->b.en = 0;
-}
+	for (int i = 0; i < n; i++) {
+		if (abs(m[i].sprite.getPosition().x - MC->b.sprite.getPosition().x) < 150 && abs(m[i].sprite.getPosition().y - MC->b.sprite.getPosition().y) < 50 && m[i].en == 1 && MC->b.en == 1) {
+			MC->b.en = 0;
+			m[i].sprite.setColor(Color::Red);
+			m[i].hp = m[i].hp - 1;
+			if (m[i].hp <= 0)
+				m[i].en = 0;
+		}
+		if (abs(m[i].sprite.getPosition().x - MC->sprite.getPosition().x) < 50 && abs(m[i].sprite.getPosition().y - MC->sprite.getPosition().y) < 50 && m[i].en == 1 && MC->en == 1)
+			MC->en = 0;
+	}
+	}
 
 int cutscene(Clock clock,IntRect* rectSourceSprite, Sprite* sprite, int sizex, int sizey, int frames, int line ,int fps) {
 	if (((int)(clock.getElapsedTime().asMilliseconds() / (1000.0 / fps))) % (int)sizex < frames) {
@@ -360,21 +436,46 @@ void draw_credits(int* current_scr, Texture* textures, RenderWindow *window) {
 
 void draw_game(int* map, character* MC, Sound sound[], Texture* textures, double delta, Clock clock, int* current_scr, RenderWindow* window, Event event) {
 	Sprite map_sprite;
-	IntRect map_rec(0,0,64,64);
-	MC->b.sprite.setTextureRect(IntRect(0,0,32,32));
-	MC->b.sprite.setTexture(textures[6]);
-	IntRect rec(0,0,32,32);
+	
+	IntRect map_rec(0, 0, 64, 64);
+	IntRect hp(0, 0, 100, 10);
+	Sprite h;
+	h.setColor(Color::Green);
+	h.setTextureRect(hp);
+	h.setScale(MC->hp / 100, 1);
+	h.setPosition(100, 100);
+	if(Mouse::isButtonPressed(Mouse::Right))
+		MC->bats=1;
 
-	int var=0,vel=7;
+	if (MC->bats&&(Mouse::isButtonPressed(Mouse::Right)|| 0==((int ) clock.getElapsedTime().asMilliseconds() )% 100)) {
+		spawn_m(MC->m, 10, 1, window);
+
+	}
+	move_m(MC, MC->m, 10, delta,window);
+	
+	IntRect rec(0, 0, 32, 32);
+	MC->b.sprite.setTextureRect(rec);
+	MC->b.sprite.setTexture(textures[6]);
+
+	for (int i = 0; i < 10; i++) {
+
+		animate(clock, &rec, &MC->m[i].sprite, 32, 32, 4, 0, 10);
+		MC->m[i].sprite.setTexture(textures[4]);
+		MC->m[i].sprite.setTextureRect(rec);
+	}
+	int var = 0, vel = 7;
+
 	MC->sprite.setTextureRect(rec);
 	move_b(MC, delta);
-	destroy_b(MC, delta, window);
+	destroy_b(MC,MC->m ,10,delta, window);
 	MC->sprite.setPosition((MC->x) * (*window).getSize().x / 800.0, (MC->wy) * (*window).getSize().y / 600.0);
-	MC->sprite.setScale((*window).getSize().x/400.0, (*window).getSize().y / 300.0);	
+	MC->sprite.setScale((*window).getSize().x / 400.0, (*window).getSize().y / 300.0);
+	MC->b.sprite.setScale((*window).getSize().x / 700.0, (*window).getSize().y / 700.0);
 	MC->sprite.setTexture(textures[3]);
 	animate(clock, (&rec), &(MC->sprite), 32, 32, 4, 0, 10);
+	animate(clock, &rec, &MC->b.sprite, 32, 32, 3, 0, 10);
 
-	int s = (*window).getSize().x,ss = (*window).getSize().y;
+	int s = (*window).getSize().x, ss = (*window).getSize().y;
 
 	if (MC->y * (*window).getSize().y / 600.0 < (*window).getSize().y / 2.0) {
 		MC->wy = MC->y;
@@ -383,28 +484,29 @@ void draw_game(int* map, character* MC, Sound sound[], Texture* textures, double
 		MC->sprite.setPosition((MC->x) * (*window).getSize().x / 800.0, (MC->wy) * (*window).getSize().y / 600.0);
 	}
 	else if (MC->y * (*window).getSize().y / 600.0 > (*window).getSize().y / 2.0 + ((*window).getSize().x - (*window).getSize().y)) {
-		MC->py = ss-s;
-		MC->wy =( ((MC->y) * ss / 600.0) + (ss - s))/ ss / 600.0;
-		map_sprite.setPosition(0, ss-s);
+		MC->py = ss - s;
+		MC->wy = (((MC->y) * ss / 600.0) + (ss - s)) / ss / 600.0;
+		map_sprite.setPosition(0, ss - s);
 		MC->sprite.setPosition((MC->x) * s / 800.0, (((MC->y) * ss / 600.0) + (ss - s)));
 	}
 	else {
 		MC->wy = (ss / 2.0) / (ss / 600.00);
 		MC->py = (*window).getSize().y / 2 - MC->y * (*window).getSize().y / 600;
-		map_sprite.setPosition(0, (*window).getSize().y/2- MC->y*(*window).getSize().y/600);
-		MC->sprite.setPosition((MC->x) * s / 800.0, ss /2.0);
+		map_sprite.setPosition(0, (*window).getSize().y / 2 - MC->y * (*window).getSize().y / 600);
+		MC->sprite.setPosition((MC->x) * s / 800.0, ss / 2.0);
 	}
-	
 
-	if(Keyboard::isKeyPressed(Keyboard::W)&& MC->y>134){
-		MC->y = (MC->y) -  vel/delta;
+
+	if (Keyboard::isKeyPressed(Keyboard::W) && MC->y > 134) {
+		MC->y = (MC->y) - vel / delta;
 		MC->sprite.setTexture(textures[9]);
 		MC->der = -1;
+		MC->dir = -1;
 
 
 	}
-	else if (Keyboard::isKeyPressed(Keyboard::S)&&MC->y<964) {
-		(MC->y) = (MC->y) + vel/delta;
+	else if (Keyboard::isKeyPressed(Keyboard::S) && MC->y < 964) {
+		(MC->y) = (MC->y) + vel / delta;
 		MC->sprite.setTexture(textures[3]);
 		MC->der = 1;
 	}
@@ -415,29 +517,29 @@ void draw_game(int* map, character* MC, Sound sound[], Texture* textures, double
 		MC->sprite.setTexture(textures[9]);
 	else
 		MC->sprite.setTexture(textures[3]);
-	if (Keyboard::isKeyPressed(Keyboard::D)&&MC->x<726) {
-		(MC->x) = (MC->x) + vel/delta;
+	if (Keyboard::isKeyPressed(Keyboard::D) && MC->x < 726) {
+		(MC->x) = (MC->x) + vel / delta;
 		MC->der = 1;
-		if (MC->dir==-1) {
+		if (MC->dir == -1) {
 			MC->dir = 1;
 		}
 	}
-	else if (Keyboard::isKeyPressed(Keyboard::A)&&MC->x>124) {
-		(MC->x) = (MC->x) -  vel/delta;
+	else if (Keyboard::isKeyPressed(Keyboard::A) && MC->x > 124) {
+		(MC->x) = (MC->x) - vel / delta;
 		MC->der = 1;
 		if (MC->dir == 1) {
 			MC->dir = -1;
 
 		}
-		
+
 	}
 
 
-	else if(var==1) {
-		
+	else if (var == 1) {
+
 		rec.left = 32;
-		
-		if (Keyboard::isKeyPressed(Keyboard::Space)&& MC->der==1) {
+
+		if (Keyboard::isKeyPressed(Keyboard::Space) && MC->der == 1) {
 			MC->sprite.setTexture(textures[8]);
 			rec.left = 0;
 			spawn_b(MC);
@@ -448,26 +550,45 @@ void draw_game(int* map, character* MC, Sound sound[], Texture* textures, double
 			spawn_b(MC);
 		}
 		MC->sprite.setTextureRect(rec);
-		
+
 	}
 	else {
-		
+
 	}
 	MC->sprite.scale(MC->dir, 1);
-
-	switch(*map){
-		case 0:
-			map_sprite.setTextureRect(map_rec);
-			map_sprite.setTexture(textures[7]);			
-			map_sprite.setScale(13*(*window).getSize().x/800, 13*(*window).getSize().x/800);
-			break;
+	if (MC->der == -1)
+		MC->b.sprite.scale(0.5, 1);
+	switch (*map) {
+	case 0:
+		map_sprite.setTextureRect(map_rec);
+		map_sprite.setTexture(textures[7]);
+		map_sprite.setScale(13 * (*window).getSize().x / 800, 13 * (*window).getSize().x / 800);
+		break;
 	}
 
-	
+
+
 	(*window).draw(map_sprite);
+	
+	if (MC->b.en == 1)
+		for (int i = 1; i < 10; i++){
+			MC->b.sprite.setPosition(MC->b.x - i * 0.5 *25* (MC->b.dir == 1 ? 1 : -2), MC->b.y + i * 0.5 * 10*((MC->b.dir == 1 ? 0.1*i : i%2)));
+			MC->b.sprite.scale( 0.12*(10-i), (10- i)*0.12);
+			MC->b.sprite.setColor(Color::Color(255, 255, 255, 255 - i * 20));
+			(*window).draw(MC->b.sprite);
+		}
 	(*window).draw(MC->sprite);
-	(*window).draw(MC->b.sprite);
+	window->draw(h);
+	for(int i=0;i<10;i++)
+		if(MC->m[i].en==1)
+			window->draw(MC->m[i].sprite);
+	if (MC->en == 0) {
+		*current_scr = 3;
+		init_m(MC->m, 10);
+		character_initializer(MC, "mc", 200, 200);
+	}
 }
+
 
 void draw_scr(int* map, character* MC, Texture* textures, double delta, Clock clock, int* current_scr, RenderWindow* window, Event& event, Sound sound[]) {
 	/*
@@ -543,7 +664,7 @@ Texture* load_textures() {
 		//scanf("%*c");
 	}
 	Texture heal;
-	if (!butterfly.loadFromFile("img/heal.png", sf::IntRect(0, 0, 92, 32))) {
+	if (!heal.loadFromFile("img/heal.png", sf::IntRect(0, 0, 96, 32))) {
 		perror("failed to load heal image");
 		//scanf("%*c");
 	}
