@@ -9,9 +9,23 @@ using namespace std;
 
 using namespace sf;
 
-typedef struct{
+typedef struct {
+	float ox;
+	float oy;
 	float x;
 	float y;
+	int dir;
+	int en;
+	Sprite sprite;
+	IntRect* rect;
+} bullet;
+
+typedef struct{
+	bullet b;
+	float x;
+	float y,py;
+	float wy;
+	int der;
 	Sprite sprite;
 	float hp;
 	int line;
@@ -19,17 +33,70 @@ typedef struct{
 	IntRect *rect;
 } character;
 
+
 void character_initializer(character* char_obj, string type, int x, int y){
 	char_obj->hp = 3;
 	char_obj->x = x;
-
+	char_obj->wy = y;
 	char_obj->y = y;
 	char_obj->dir = 1;
+	char_obj->der = 1;
+	IntRect rectangular(0, 0, 32, 32);
 	IntRect rectangular_shape(0, 0, 32, 32);
+	char_obj->b.rect = &rectangular;
 	char_obj->rect = &rectangular_shape;
 	if(type.compare("mc"))
 		char_obj->line = 0;
 	char_obj->sprite.setOrigin(32 / 2, 32 / 2);
+	char_obj->b.en = 0;
+}
+void spawn_b(character * MC) {
+	if (MC->b.en == 0) {
+		MC->b.ox = MC->sprite.getPosition().x;
+		MC->b.oy = MC->y;
+
+		if (MC->der == 1 && MC->dir == 1) {
+			MC->b.dir = 0;
+		}
+		else if (MC->der == 1) {
+			MC->b.dir = 1;
+		}
+		else if (MC->dir == -1) {
+			MC->b.dir = 2;
+		}
+
+		MC->b.x = MC->b.ox + MC->b.dir * 30;
+		MC->b.y = MC->b.oy - (1 - MC->der) * 30;
+		MC->b.en = 1;
+		float var = MC->sprite.getPosition().y - MC->b.y - MC->py;
+			MC->b.y = MC->b.y + var + MC->py;
+		MC->b.sprite.setPosition(MC->b.x, MC->b.y);
+	}
+}
+void move_b(character * MC, double delta) {
+	if (MC->b.en == 1) {
+		switch (MC->b.dir) {
+		case 0:
+			MC->b.x = MC->b.x + 50 / delta;
+			break;
+		case 1:
+			MC->b.x = MC->b.x - 50 / delta;
+			break;
+		case 2:
+			MC->b.y = MC->b.y - 50 / delta;
+			break;
+		}
+		MC->b.sprite.setPosition(MC->b.x, MC->b.y);
+	}
+}
+
+void destroy_b(character* MC, double delta, RenderWindow * window) {
+	if (MC->b.x < -5 || MC->b.x > window->getSize().x)
+		MC->b.en = 0;
+	if (MC->b.y < -5)
+		MC->b.en = 0;
+	//if (collision_b(MC->b.x, MC->b.y, asas))
+		//MC->b.en = 0;
 }
 
 int cutscene(Clock clock,IntRect* rectSourceSprite, Sprite* sprite, int sizex, int sizey, int frames, int line ,int fps) {
@@ -294,58 +361,112 @@ void draw_credits(int* current_scr, Texture* textures, RenderWindow *window) {
 void draw_game(int* map, character* MC, Sound sound[], Texture* textures, double delta, Clock clock, int* current_scr, RenderWindow* window, Event event) {
 	Sprite map_sprite;
 	IntRect map_rec(0,0,64,64);
-
+	MC->b.sprite.setTextureRect(IntRect(0,0,32,32));
+	MC->b.sprite.setTexture(textures[6]);
 	IntRect rec(0,0,32,32);
+
 	int var=0,vel=7;
 	MC->sprite.setTextureRect(rec);
+	move_b(MC, delta);
+	destroy_b(MC, delta, window);
+	MC->sprite.setPosition((MC->x) * (*window).getSize().x / 800.0, (MC->wy) * (*window).getSize().y / 600.0);
+	MC->sprite.setScale((*window).getSize().x/400.0, (*window).getSize().y / 300.0);	
 	MC->sprite.setTexture(textures[3]);
-	MC->sprite.setPosition((MC->x) * (*window).getSize().x / 800.0, (MC->y) * (*window).getSize().y / 600.0);
-	MC->sprite.setScale((*window).getSize().x/400.0, (*window).getSize().y / 300.0);
-	animate(clock, (&rec), &(MC->sprite), 32, 32, 4, 0, 5);
-	if(Keyboard::isKeyPressed(Keyboard::W)){
+	animate(clock, (&rec), &(MC->sprite), 32, 32, 4, 0, 10);
+
+	int s = (*window).getSize().x,ss = (*window).getSize().y;
+
+	if (MC->y * (*window).getSize().y / 600.0 < (*window).getSize().y / 2.0) {
+		MC->wy = MC->y;
+		MC->py = 0;
+		map_sprite.setPosition(0, 0);
+		MC->sprite.setPosition((MC->x) * (*window).getSize().x / 800.0, (MC->wy) * (*window).getSize().y / 600.0);
+	}
+	else if (MC->y * (*window).getSize().y / 600.0 > (*window).getSize().y / 2.0 + ((*window).getSize().x - (*window).getSize().y)) {
+		MC->py = ss-s;
+		MC->wy =( ((MC->y) * ss / 600.0) + (ss - s))/ ss / 600.0;
+		map_sprite.setPosition(0, ss-s);
+		MC->sprite.setPosition((MC->x) * s / 800.0, (((MC->y) * ss / 600.0) + (ss - s)));
+	}
+	else {
+		MC->wy = (ss / 2.0) / (ss / 600.00);
+		MC->py = (*window).getSize().y / 2 - MC->y * (*window).getSize().y / 600;
+		map_sprite.setPosition(0, (*window).getSize().y/2- MC->y*(*window).getSize().y/600);
+		MC->sprite.setPosition((MC->x) * s / 800.0, ss /2.0);
+	}
+	
+
+	if(Keyboard::isKeyPressed(Keyboard::W)&& MC->y>134){
 		MC->y = (MC->y) -  vel/delta;
-		
+		MC->sprite.setTexture(textures[9]);
+		MC->der = -1;
+
 
 	}
-	else if (Keyboard::isKeyPressed(Keyboard::S)) {
+	else if (Keyboard::isKeyPressed(Keyboard::S)&&MC->y<964) {
 		(MC->y) = (MC->y) + vel/delta;
-	
+		MC->sprite.setTexture(textures[3]);
+		MC->der = 1;
 	}
 	else {
 		var = 1;
 	}
-	if (Keyboard::isKeyPressed(Keyboard::D)) {
+	if (MC->der == -1)
+		MC->sprite.setTexture(textures[9]);
+	else
+		MC->sprite.setTexture(textures[3]);
+	if (Keyboard::isKeyPressed(Keyboard::D)&&MC->x<726) {
 		(MC->x) = (MC->x) + vel/delta;
+		MC->der = 1;
 		if (MC->dir==-1) {
 			MC->dir = 1;
 		}
 	}
-	else if (Keyboard::isKeyPressed(Keyboard::A)) {
+	else if (Keyboard::isKeyPressed(Keyboard::A)&&MC->x>124) {
 		(MC->x) = (MC->x) -  vel/delta;
+		MC->der = 1;
 		if (MC->dir == 1) {
 			MC->dir = -1;
 
 		}
 		
 	}
+
+
 	else if(var==1) {
 		
 		rec.left = 32;
+		
+		if (Keyboard::isKeyPressed(Keyboard::Space)&& MC->der==1) {
+			MC->sprite.setTexture(textures[8]);
+			rec.left = 0;
+			spawn_b(MC);
+		}
+		else if (Keyboard::isKeyPressed(Keyboard::Space) && MC->der == -1) {
+			MC->sprite.setTexture(textures[9]);
+			rec.left = 0;
+			spawn_b(MC);
+		}
 		MC->sprite.setTextureRect(rec);
+		
+	}
+	else {
+		
 	}
 	MC->sprite.scale(MC->dir, 1);
 
 	switch(*map){
 		case 0:
 			map_sprite.setTextureRect(map_rec);
-			map_sprite.setTexture(textures[7]);
-			map_sprite.setPosition(0, 0);
-			map_sprite.setScale((*window).getSize().x/62, (*window).getSize().x/62);
+			map_sprite.setTexture(textures[7]);			
+			map_sprite.setScale(13*(*window).getSize().x/800, 13*(*window).getSize().x/800);
 			break;
 	}
 
+	
 	(*window).draw(map_sprite);
 	(*window).draw(MC->sprite);
+	(*window).draw(MC->b.sprite);
 }
 
 void draw_scr(int* map, character* MC, Texture* textures, double delta, Clock clock, int* current_scr, RenderWindow* window, Event& event, Sound sound[]) {
@@ -384,10 +505,12 @@ Texture* load_textures() {
 	 *  5 - Butterfly , 32  32  6 1
 	 *  6 - Heal      , 32  32  3 1
 	 *  7 - Dungeon   , 64  64  1 1
+	 *  8 - Pawa      , 32  32  1 1
+	 *  9 - back      , 32  32  4 1
 	 */
 
 	Texture *textures;
-	textures=(Texture*)malloc(sizeof(Texture) * 8);
+	textures=(Texture*)malloc(sizeof(Texture) * 10);
 
 	Texture gameover;
 	if (!gameover.loadFromFile("img/gameover.jpg", sf::IntRect(0, 0, 300, 300))) {
@@ -429,6 +552,16 @@ Texture* load_textures() {
 		perror("failed to load dungeon image");
 		//scanf("%*c");
 	}
+	Texture pawa;
+	if (!pawa.loadFromFile("img/pawa.png", sf::IntRect(0, 0, 32, 32))) {
+		perror("failed to load kono pawa image");
+		//scanf("%*c");
+	}
+	Texture back;
+	if (!back.loadFromFile("img/persona.png", sf::IntRect(0, 0, 4*32, 32))) {
+		perror("failed to load kono pawa image");
+		//scanf("%*c");
+	}
 
 	textures[0] = gameover;
 	textures[1] = cursor;
@@ -438,6 +571,8 @@ Texture* load_textures() {
 	textures[5] = butterfly;
 	textures[6] = heal;
 	textures[7] = dungeon;
+	textures[8] = pawa;
+	textures[9] = back;
 	return textures;
 
 }
