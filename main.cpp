@@ -64,14 +64,16 @@ void init_m( mnst* m, int n) {
 	}
 
 }
-void spawn_m(mnst* m, int n,int type,RenderWindow* window) {
+void spawn_m(character* MC,mnst* m, int n,int type,RenderWindow* window) {
 	
 	for (int i = 0; i < n; i++) {
 		if (m[i].en == 0) {
 			m[i].sprite.setColor(Color::White);
 			m[i].en = 1;
-			m[i].x = rand() % window->getSize().x;
-			m[i].y = rand() % window->getSize().y;
+			do {
+				m[i].x = rand() % window->getSize().x;
+				m[i].y = rand() % window->getSize().y;
+			} while (abs(m[i].x - MC->x) < 100 || abs(m[i].y - MC->y) < 100);
 			m[i]. type = type;
 			m[i].hp = 2;
 			break;
@@ -520,7 +522,7 @@ void draw_game(Door* door, int* map, character* MC, Sound sound[], Texture* text
 	MC->bats=1;
 
 	if (*map>0&&(MC->bats && (0 == ((int ) clock.getElapsedTime().asMilliseconds() )% 60))) {
-		spawn_m(MC->m, 10, 1, window);
+		spawn_m(MC,MC->m, 10, 1, window);
 	}
 	move_m(MC, MC->m, 10, delta,window);
 
@@ -960,7 +962,7 @@ int main(void) {
 		}
 		if(old_scr!=*current_scr){
 			map=0;
-			spawn_m(MC.m, 10, 1, &window);
+			spawn_m(&MC,MC.m, 10, 1, &window);
 		}
 
 
