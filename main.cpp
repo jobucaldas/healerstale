@@ -1,5 +1,5 @@
 #include <iostream>
-#include<cstdlib>
+#include <cstdlib>
 #include <string>
 #include <math.h>
 #include <SFML/Audio.hpp>
@@ -25,7 +25,8 @@ void character_initializer(character* char_obj, string type, int x, int y){
 
 	char_obj->y = y;
 	char_obj->dir = 1;
-	char_obj->rect = &(IntRect (0, 0, 32, 32));
+	IntRect rectangular_shape(0, 0, 32, 32);
+	char_obj->rect = &rectangular_shape;
 	if(type.compare("mc"))
 		char_obj->line = 0;
 	char_obj->sprite.setOrigin(32 / 2, 32 / 2);
@@ -184,7 +185,6 @@ void draw_menu(int* current_scr,Texture * textures ,RenderWindow *window) {
 	(*window).draw(opt3);
 }
 
-
 void draw_gameover(Clock clock,int* current_scr, Texture* textures, RenderWindow* window) {
 	Font font;
 	if (!font.loadFromFile("fonts/pc98.ttf")) {
@@ -291,7 +291,10 @@ void draw_credits(int* current_scr, Texture* textures, RenderWindow *window) {
 	(*window).draw(credits);
 }
 
-void draw_game(character* MC, Sound sound[], Texture* textures, double delta, Clock clock, int* current_scr, RenderWindow* window, Event event) {
+void draw_game(int* map, character* MC, Sound sound[], Texture* textures, double delta, Clock clock, int* current_scr, RenderWindow* window, Event event) {
+	Sprite map_sprite;
+	IntRect map_rec(0,0,64,64);
+
 	IntRect rec(0,0,32,32);
 	int var=0,vel=7;
 	MC->sprite.setTextureRect(rec);
@@ -332,10 +335,20 @@ void draw_game(character* MC, Sound sound[], Texture* textures, double delta, Cl
 	}
 	MC->sprite.scale(MC->dir, 1);
 
+	switch(*map){
+		case 0:
+			map_sprite.setTextureRect(map_rec);
+			map_sprite.setTexture(textures[7]);
+			map_sprite.setPosition(0, 0);
+			map_sprite.setScale((*window).getSize().x/62, (*window).getSize().x/62);
+			break;
+	}
+
+	(*window).draw(map_sprite);
 	(*window).draw(MC->sprite);
 }
 
-void draw_scr(character* MC, Texture* textures, double delta, Clock clock, int* current_scr, RenderWindow* window, Event& event, Sound sound[]) {
+void draw_scr(int* map, character* MC, Texture* textures, double delta, Clock clock, int* current_scr, RenderWindow* window, Event& event, Sound sound[]) {
 	/*
 	 *  0 - Menu
 	 *  1 - Game
@@ -348,7 +361,7 @@ void draw_scr(character* MC, Texture* textures, double delta, Clock clock, int* 
 		draw_menu(current_scr, textures, window);
 		break;
 	case 1:
-		draw_game(MC,sound, textures,delta, clock, current_scr, window, event);
+		draw_game(map, MC,sound, textures,delta, clock, current_scr, window, event);
 		break;
 	case 2:
 		draw_credits(current_scr, textures, window);
@@ -370,10 +383,11 @@ Texture* load_textures() {
 	 *  4 - Bat       , 32  32  6 1
 	 *  5 - Butterfly , 32  32  6 1
 	 *  6 - Heal      , 32  32  3 1
+	 *  7 - Dungeon   , 64  64  1 1
 	 */
 
 	Texture *textures;
-	textures=(Texture*)malloc(sizeof(Texture) * 7);
+	textures=(Texture*)malloc(sizeof(Texture) * 8);
 
 	Texture gameover;
 	if (!gameover.loadFromFile("img/gameover.jpg", sf::IntRect(0, 0, 300, 300))) {
@@ -410,6 +424,11 @@ Texture* load_textures() {
 		perror("failed to load heal image");
 		//scanf("%*c");
 	}
+	Texture dungeon;
+	if (!dungeon.loadFromFile("img/initialdungeon.png", sf::IntRect(0, 0, 64, 64))) {
+		perror("failed to load dungeon image");
+		//scanf("%*c");
+	}
 
 	textures[0] = gameover;
 	textures[1] = cursor;
@@ -418,13 +437,14 @@ Texture* load_textures() {
 	textures[4] = bat;
 	textures[5] = butterfly;
 	textures[6] = heal;
+	textures[7] = dungeon;
 	return textures;
 
 }
 
 int main(void) {
 	int current_scr[1] = { 0 };
-	int cursor_line = 1;
+	int cursor_line = 1, map = 0;
 
 	// Initialize clock
 	Clock clock;
@@ -477,7 +497,7 @@ int main(void) {
 		if (time.asSeconds() <= 8)
 			draw_credits_gamso(&window);
 		else {
-			draw_scr(&MC,textures, delta, clock, current_scr, &window, event, sound);
+			draw_scr(&map, &MC,textures, delta, clock, current_scr, &window, event, sound);
 			if (bg.getStatus() != bg.Playing && *current_scr == 1)
 				bg.play();
 			else if (bg.getStatus() == bg.Playing && *current_scr == 0)
