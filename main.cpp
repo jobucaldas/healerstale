@@ -39,6 +39,7 @@ typedef struct{
 	bullet b;
 	float x;
 	float y,py;
+	int c, key,chat;
 	float wy;
 	int der,f;
 	Sprite sprite;
@@ -96,9 +97,12 @@ void move_m(character* MC,mnst* m, int n, double delta, RenderWindow * window) {
 void character_initializer(character* char_obj, string type, int x, int y){
 	char_obj->m = new mnst[10];
 	init_m(char_obj->m, 10);
+	char_obj->chat = -1;
 	char_obj->hp = 3;
 	char_obj->x = x;
 	char_obj->f = 0;
+	char_obj->c = 0;
+	char_obj->key = 0;
 	char_obj->en = 1;
 	char_obj->wy = y;
 	char_obj->bats = 0;
@@ -175,8 +179,10 @@ void destroy_b(character* MC, mnst* m, int n,double delta, RenderWindow* window)
 			MC->b.en = 0;
 			m[i].sprite.setColor(Color::Red);
 			m[i].hp = m[i].hp - 1;
-			if (m[i].hp <= 0)
+			if (m[i].hp <= 0) {
 				m[i].en = 0;
+				MC->c = MC->c + 1;
+			}
 		}
 		if (abs(m[i].sprite.getPosition().x - MC->sprite.getPosition().x) < 50 && abs(m[i].sprite.getPosition().y - MC->sprite.getPosition().y) < 50 && m[i].en == 1 && MC->en == 1)
 			MC->en = 0;
@@ -231,25 +237,24 @@ void write(int n, RenderWindow* window,float size, Color c,float x, float y,int 
 void chat(int n, RenderWindow* window) {
 	switch (n) {
 	case 0:
-		write(1, window, 0.03, Color::White, 350, 650, 10, "Est� muito escuro aqui...\n");
-		write(1, window, 0.02, Color::White, 350, 650, 10, "\n \n ainda bem que h� uma lanterna\n ..... o que � aquilo?");
+		write(1, window, 0.03, Color::White, 200, 100, 10, "Bem vindo a Dungeon, aqui eh um lugar onde você pode obter tudo,\n e ao mesmo tempo, perder tudo\n pressione espaço por sua conta e risco");
 		break;
 	case 2:
-		write(1, window, 0.03, Color::White, 50, 650, 10, "algo ainda me deixa desconfortavel aqui...");
+		write(1, window, 0.03, Color::White, 200, 650, 10, "-Nossa! O que aconteceu com meus poderes de cura?\n Talvez eu possa usar minhas novas habilidades nessa dungeon…");
 		break;
 	case 4:
-		write(1, window, 0.03, Color::White, 50, 650, 10, "FUJA!	FUJA!  FUJA RAPIDAMENTE! ,\n ELE N�O EST� T�O LONGE...");
+		write(1, window, 0.03, Color::White, 200, 100, 10, "Vendedor: Olá! O que faz por aqui?\n Aposto que veio em busca do Santo Graal!\n Compre alguma coisa, lá dentro é perigoso, você vai precisar de um item." );
 		break;
 	case 6:
-		write(1, window, 0.03, Color::White, 50, 650, 10, "SAIA DO MEU QUARTO,\n crian�as n�o deveriam estar aqui...");
+		write(1, window, 0.03, Color::White, 200, 100, 10, "-Hey! Isso é meio suspeito…");
 		break;
 	case 8:
-		write(1, window, 0.08, Color::White, 50, 650, 10, "*****ROOOONCO******");
+		write(1, window, 0.08, Color::White, 200, 650, 10, "Healer: Então era você o tempo todo!");
 		break;
 	case 10:
-		write(1, window, 0.03, Color::White, 50, 650, 10, "nada aqui");
+		write(1, window, 0.03, Color::White, 200, 100, 10, "Boss: Conseguiu adivinhar? Hahahaha! Já era hora de você morrer!");
 		break;
-	case 101:
+	/*case 101:
 		write(1, window, 0.03, Color::White, 350, 650, 10, " vamos, filho");
 		break;
 	case 102:
@@ -263,7 +268,7 @@ void chat(int n, RenderWindow* window) {
 		break;
 	case 100:
 		write(1, window, 0.03, Color::White, 350, 650, 10, "algu�m pode iluminar?");
-		break;
+		break;*/
 	default:
 		write(1, window, 0.03, Color::White, 50, 650, 10, "");
 		break;
@@ -318,7 +323,7 @@ void draw_menu(int* reset, int* current_scr, Clock true_clock, Clock* clock, Tex
 		clock->restart();
 		*reset=1;
 	}
-	cout<<clock->getElapsedTime().asSeconds()<<endl;
+
 	if(*reset==1){
 		animate(*clock, &logo_rect, &logo, 64, 64, 25, 0, 10);
 		if(!cutscene(*clock, &logo2_rect, &logo2, 96, 96, 17, 0, 25/17*10))
@@ -492,25 +497,29 @@ typedef struct{
 } Door;
 
 void draw_game(Door* door, int* map, character* MC, Sound sound[], Texture* textures, double delta, Clock clock, int* current_scr, RenderWindow* window, Event event) {
+
 	if(*map>=9){
 		*current_scr = 4;
 	}
+	if (MC->c >= *map * 2 * (*map))
+		MC->key = 1;
+
 
 	Sprite map_sprite;
 	IntRect door_rec(0,0,32,32);
 	Sprite door_sprite(textures[12], door_rec);
 	door_sprite.setScale((*window).getSize().x/300, (*window).getSize().x/300);
-	cout<<door->x<<endl;
-	cout<<door->y<<endl;
+	
 	door_sprite.setPosition(door->x, door->y+MC->py);
 
 	IntRect map_rec(0, 0, 64, 64);
-	if(Keyboard::isKeyPressed(Keyboard::Space) && *map<1)
+	if (Keyboard::isKeyPressed(Keyboard::Space) && *map < 1 && MC->c>0) {
 		*map = *map + 1;
-
+		init_m(MC->m, 10);
+	}
 	MC->bats=1;
 
-	if (MC->bats && (0 == ((int ) clock.getElapsedTime().asMilliseconds() )% 60)) {
+	if (*map>0&&(MC->bats && (0 == ((int ) clock.getElapsedTime().asMilliseconds() )% 60))) {
 		spawn_m(MC->m, 10, 1, window);
 	}
 	move_m(MC, MC->m, 10, delta,window);
@@ -599,8 +608,10 @@ void draw_game(Door* door, int* map, character* MC, Sound sound[], Texture* text
 		}
 	}
 
-	if(MC->sprite.getGlobalBounds().intersects(door_sprite.getGlobalBounds()) && *map >=1){
+	if(MC->sprite.getGlobalBounds().intersects(door_sprite.getGlobalBounds()) && *map >=1&& MC->key ==1){
 		*map = *map + 1;
+		init_m(MC->m, 10);
+		MC->key = 0;
 	}
 
 	else if (var == 1) {
@@ -639,9 +650,10 @@ void draw_game(Door* door, int* map, character* MC, Sound sound[], Texture* text
 	case 1:
 		//
 		map_sprite.setColor(Color::Magenta);
+		MC->chat = 0;
 		break;
 	case 2:
-
+		MC->chat = 1;
 		map_sprite.setColor(Color::Green);
 		break;
 	case 3:
@@ -689,6 +701,9 @@ void draw_game(Door* door, int* map, character* MC, Sound sound[], Texture* text
 		init_m(MC->m, 10);
 		character_initializer(MC, "mc", 200, 200);
 	}
+	chat(MC->chat, window);
+	if (MC->key == 1 && *map!=0)
+		write(1, window, 0.03, Color::White, 400, 300, 10, "VOCÊ TEM A CHAVE!");
 }
 
 void draw_win(Clock clock,int* current_scr, Texture* textures, RenderWindow* window) {
@@ -925,7 +940,7 @@ int main(void) {
 			if (event.type == Event::Closed)
 				window.close();
 		}
-
+	
 		int old_map = map;
 		int old_scr = *current_scr;
 
@@ -945,6 +960,7 @@ int main(void) {
 		}
 		if(old_scr!=*current_scr){
 			map=0;
+			spawn_m(MC.m, 10, 1, &window);
 		}
 
 
