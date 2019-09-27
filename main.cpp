@@ -239,7 +239,7 @@ void write(int n, RenderWindow* window,float size, Color c,float x, float y,int 
 void chat(int n, RenderWindow* window) {
 	switch (n) {
 	case 0:
-		write(1, window, 0.03, Color::White, 200, 100, 10, "Bem vindo a Dungeon, aqui eh um lugar onde você pode obter tudo,\n e ao mesmo tempo, perder tudo\n pressione espaço por sua conta e risco");
+		write(1, window, 0.03, Color::White, 200, 100, 10, "Bem vindo a Dungeon, aqui eh um lugar onde voce pode obter tudo,\n e ao mesmo tempo, perder tudo\n pressione SPACE por sua conta e risco");
 		break;
 	case 2:
 		write(1, window, 0.03, Color::White, 200, 650, 10, "-Nossa! O que aconteceu com meus poderes de cura?\n Talvez eu possa usar minhas novas habilidades nessa dungeon…");
@@ -374,6 +374,11 @@ void draw_menu(int* reset, int* current_scr, Clock true_clock, Clock* clock, Tex
 		opt3.setFillColor(Color::Magenta);
 		if (Mouse::isButtonPressed(Mouse::Left))
 			(*window).close();
+	}else if(logo.getGlobalBounds().contains(Mouse::getPosition(*window).x, Mouse::getPosition(*window).y)|| logo2.getGlobalBounds().contains(Mouse::getPosition(*window).x, Mouse::getPosition(*window).y)) {
+		logo2.setColor(Color::Magenta);
+		logo.setColor(Color::Magenta);
+		if (Mouse::isButtonPressed(Mouse::Left))
+			* reset=0;
 	}
 
 	// Draw
@@ -387,7 +392,7 @@ void draw_menu(int* reset, int* current_scr, Clock true_clock, Clock* clock, Tex
 	(*window).draw(keys);
 }
 
-void draw_gameover(Clock clock,int* current_scr, Texture* textures, RenderWindow* window) {
+void draw_gameover(int* reset,Clock clock,int* current_scr, Texture* textures, RenderWindow* window) {
 	Font font;
 	if (!font.loadFromFile("fonts/pc98.ttf")) {
 		cout << "Error loading fonts" << endl;
@@ -419,8 +424,10 @@ void draw_gameover(Clock clock,int* current_scr, Texture* textures, RenderWindow
 	// Menu events
 	if (menu.getGlobalBounds().contains(Mouse::getPosition(*window).x, Mouse::getPosition(*window).y)) {
 		menu.setFillColor(Color::Magenta);
-		if (Mouse::isButtonPressed(Mouse::Left))
-			* current_scr = 0;
+		if (Mouse::isButtonPressed(Mouse::Left)) {
+			*current_scr = 0;
+		
+		}
 	}
 	else if (retry.getGlobalBounds().contains(Mouse::getPosition(*window).x, Mouse::getPosition(*window).y)) {
 		retry.setFillColor(Color::Magenta);
@@ -515,7 +522,7 @@ void draw_game(Door* door, int* map, character* MC, Sound sound[], Texture* text
 	door_sprite.setPosition(door->x, door->y+MC->py);
 
 	IntRect map_rec(0, 0, 64, 64);
-	if (Keyboard::isKeyPressed(Keyboard::Space) && *map < 1 && MC->c>0) {
+	if (Keyboard::isKeyPressed(Keyboard::Space) && *map < 1 ) {
 		*map = *map + 1;
 		init_m(MC->m, 10);
 	}
@@ -651,6 +658,7 @@ void draw_game(Door* door, int* map, character* MC, Sound sound[], Texture* text
 
 	switch (*map) {
 	case 0:
+		MC->chat = 0;
 		//Bem vindo ao jogo, atire com a tecla espaço
 		map_sprite.setColor(Color::Magenta);
 		break;
@@ -708,9 +716,19 @@ void draw_game(Door* door, int* map, character* MC, Sound sound[], Texture* text
 		init_m(MC->m, 10);
 		character_initializer(MC, "mc", 200, 200);
 	}
+	if (*map <= 2) {
+		IntRect key_rect(0, 0, 64, 64);
+		Sprite keys(textures[11], key_rect);
+		keys.scale((*window).getSize().x / 400, (*window).getSize().x / 400);
+		keys.setPosition((*window).getSize().x - keys.getGlobalBounds().width, (*window).getSize().y - keys.getGlobalBounds().width);
+		animate(clock, &key_rect, &keys, 64, 64, 11, 0, 2);
+		window->draw(keys);
+
+	}
 	chat(MC->chat, window);
 	if (MC->key == 1 && *map!=0)
-		write(1, window, 0.03, Color::White, 400, 300, 10, "VOCÊ TEM A CHAVE!");
+		write(1, window, 0.03, Color::White, 400, 300, 10, "VOSSAMERCE TENS A CHAVE!\n  CORRA IMEDIATAMENTE PARA A PORTA!");
+	//write(0, window, 10, Color::White, 100, 700, MC->c, "");
 }
 
 void draw_win(Clock clock,int* current_scr, Texture* textures, RenderWindow* window) {
@@ -779,7 +797,7 @@ void draw_scr(Door* door, int* reset, Clock* cut_clock, int* map, character* MC,
 		draw_credits(current_scr, textures, window);
 		break;
 	case 3:
-		draw_gameover(clock,current_scr, textures,window);
+		draw_gameover(reset,clock,current_scr, textures,window);
 		break;
 	case 4:
 		draw_win(clock,current_scr, textures,window);
@@ -967,7 +985,6 @@ int main(void) {
 		}
 		if(old_scr!=*current_scr){
 			map=0;
-			spawn_m(&MC,MC.m, 10, 1, &window);
 		}
 
 
