@@ -210,7 +210,7 @@ void animate(Clock clock, IntRect* rectSourceSprite, Sprite* sprite, int sizex,i
 
 void write(int n, RenderWindow* window,float size, Color c,float x, float y,int i,string str) {
 	Font font;
-	if (!font.loadFromFile("fonts/pc98.ttf")) {
+	if (!font.loadFromFile("Assets/Fonts/pc98.ttf")) {
 		cout << "Error loading fonts" << endl;
 		//scanf("%*c");
 	}
@@ -283,7 +283,7 @@ void draw_menu(int* reset, int* current_scr, Clock true_clock, Clock* clock, Tex
 
 	// BG
 	Texture bg_texture;
-	if (!bg_texture.loadFromFile("img/bg_menu.png", sf::IntRect(0, 0, 256, 128))) {
+	if (!bg_texture.loadFromFile("Assets/img/bg_menu.png", sf::IntRect(0, 0, 256, 128))) {
 		perror("failed to load bg image");
 		//scanf("%*c");
 	}
@@ -300,7 +300,7 @@ void draw_menu(int* reset, int* current_scr, Clock true_clock, Clock* clock, Tex
 
 	// Text1
 	Texture logo_texture;
-	if (!logo_texture.loadFromFile("img/healers.png", sf::IntRect(0, 0, 1600, 64))) {
+	if (!logo_texture.loadFromFile("Assets/img/healers.png", sf::IntRect(0, 0, 1600, 64))) {
 		perror("failed to load logo image");
 		//scanf("%*c");
 	}
@@ -312,7 +312,7 @@ void draw_menu(int* reset, int* current_scr, Clock true_clock, Clock* clock, Tex
 
 	//Text2
 	Texture logo2_texture;
-	if (!logo2_texture.loadFromFile("img/tale.png", sf::IntRect(0, 0, 1632, 96))) {
+	if (!logo2_texture.loadFromFile("Assets/img/tale.png", sf::IntRect(0, 0, 1632, 96))) {
 		perror("failed to load logo2 image");
 		//scanf("%*c");
 	}
@@ -338,7 +338,7 @@ void draw_menu(int* reset, int* current_scr, Clock true_clock, Clock* clock, Tex
 	}
 
 	Font font;
-	if (!font.loadFromFile("fonts/pc98.ttf")) {
+	if (!font.loadFromFile("Assets/Fonts/pc98.ttf")) {
 		cout << "Error loading fonts" << endl;
 		//scanf("%*c");
 	}
@@ -394,7 +394,7 @@ void draw_menu(int* reset, int* current_scr, Clock true_clock, Clock* clock, Tex
 
 void draw_gameover(int* reset,Clock clock,int* current_scr, Texture* textures, RenderWindow* window) {
 	Font font;
-	if (!font.loadFromFile("fonts/pc98.ttf")) {
+	if (!font.loadFromFile("Assets/Fonts/pc98.ttf")) {
 		cout << "Error loading fonts" << endl;
 		//scanf("%*c");
 	}
@@ -444,7 +444,7 @@ void draw_gameover(int* reset,Clock clock,int* current_scr, Texture* textures, R
 void draw_credits_gamso(RenderWindow *window) {
 	// Create text
 	Font font;
-	if (!font.loadFromFile("fonts/pc98.ttf")) {
+	if (!font.loadFromFile("Assets/Fonts/pc98.ttf")) {
 		cout << "Error loading fonts" << endl;
 		//scanf("%*c");
 	}
@@ -456,7 +456,7 @@ void draw_credits_gamso(RenderWindow *window) {
 
 	// Create texture
 	Texture texture;
-	if (!texture.loadFromFile("img/gamso.png")){
+	if (!texture.loadFromFile("Assets/img/gamso.png")){
 		cout << "Error loading texture" << endl;
 	}
 	texture.setSmooth(false);
@@ -472,7 +472,7 @@ void draw_credits_gamso(RenderWindow *window) {
 void draw_credits(int* current_scr, Texture* textures, RenderWindow *window) {
 	// Create text
 	Font font;
-	if (!font.loadFromFile("fonts/pc98.ttf")) {
+	if (!font.loadFromFile("Assets/Fonts/pc98.ttf")) {
 		cout << "Error loading fonts" << endl;
 		//scanf("%*c");
 	}
@@ -733,7 +733,7 @@ void draw_game(Door* door, int* map, character* MC, Sound sound[], Texture* text
 
 void draw_win(Clock clock,int* current_scr, Texture* textures, RenderWindow* window) {
 	Font font;
-	if (!font.loadFromFile("fonts/pc98.ttf")) {
+	if (!font.loadFromFile("Assets/Fonts/pc98.ttf")) {
 		cout << "Error loading fonts" << endl;
 		//scanf("%*c");
 	}
@@ -825,67 +825,67 @@ Texture* load_textures() {
 	textures=(Texture*)malloc(sizeof(Texture) * 13);
 
 	Texture gameover;
-	if (!gameover.loadFromFile("img/gameover.jpg", sf::IntRect(0, 0, 300, 300))) {
+	if (!gameover.loadFromFile("Assets/img/gameover.jpg", sf::IntRect(0, 0, 300, 300))) {
 		perror("failed to load gameover image");
 		//scanf("%*c");
 	}
 	Texture cursor;
-	if (!cursor.loadFromFile("img/cursor.png", sf::IntRect(0, 0, 32, 64))) {
+	if (!cursor.loadFromFile("Assets/img/cursor.png", sf::IntRect(0, 0, 32, 64))) {
 		perror("failed to load cursor image");
 		//scanf("%*c");
 	}
 	Texture back_arrow;
-	if (!back_arrow.loadFromFile("img/arrow.png", sf::IntRect(0, 0, 32, 32))) {
+	if (!back_arrow.loadFromFile("Assets/img/arrow.png", sf::IntRect(0, 0, 32, 32))) {
 		perror("failed to load back_arrow image");
 		//scanf("%*c");
 	}
 	Texture mc;
-	if (!mc.loadFromFile("img/mc.png", sf::IntRect(0, 0, 128, 32))) {
+	if (!mc.loadFromFile("Assets/img/mc.png", sf::IntRect(0, 0, 128, 32))) {
 		perror("failed to load mc image");
 		//scanf("%*c");
 	}
 	Texture bat;
-	if (!bat.loadFromFile("img/bat.png", sf::IntRect(0, 0, 192, 32))) {
+	if (!bat.loadFromFile("Assets/img/bat.png", sf::IntRect(0, 0, 192, 32))) {
 		perror("failed to load bat image");
 		//scanf("%*c");
 	}
 	Texture butterfly;
-	if (!butterfly.loadFromFile("img/samurai.png", sf::IntRect(0, 0, 192, 32))) {
+	if (!butterfly.loadFromFile("Assets/img/samurai.png", sf::IntRect(0, 0, 192, 32))) {
 		perror("failed to load samurai image");
 		//scanf("%*c");
 	}
 	Texture heal;
-	if (!heal.loadFromFile("img/heal.png", sf::IntRect(0, 0, 96, 32))) {
+	if (!heal.loadFromFile("Assets/img/heal.png", sf::IntRect(0, 0, 96, 32))) {
 		perror("failed to load heal image");
 		//scanf("%*c");
 	}
 	Texture dungeon;
-	if (!dungeon.loadFromFile("img/initialdungeon.png", sf::IntRect(0, 0, 64, 64))) {
+	if (!dungeon.loadFromFile("Assets/img/initialdungeon.png", sf::IntRect(0, 0, 64, 64))) {
 		perror("failed to load dungeon image");
 		//scanf("%*c");
 	}
 	Texture pawa;
-	if (!pawa.loadFromFile("img/pawa.png", sf::IntRect(0, 0, 32, 32))) {
+	if (!pawa.loadFromFile("Assets/img/pawa.png", sf::IntRect(0, 0, 32, 32))) {
 		perror("failed to load kono pawa image");
 		//scanf("%*c");
 	}
 	Texture back;
-	if (!back.loadFromFile("img/persona.png", sf::IntRect(0, 0, 4*32, 32))) {
+	if (!back.loadFromFile("Assets/img/persona.png", sf::IntRect(0, 0, 4*32, 32))) {
 		perror("failed to load kono pawa image");
 		//scanf("%*c");
 	}
 	Texture front;
-		if (!front.loadFromFile("img/mc_front.png", sf::IntRect(0, 0, 128, 32))) {
+		if (!front.loadFromFile("Assets/img/mc_front.png", sf::IntRect(0, 0, 128, 32))) {
 			perror("failed to load kono pawa image");
 			//scanf("%*c");
 	}
 	Texture key;
-	if (!key.loadFromFile("img/keys.png", sf::IntRect(0, 0, 704, 64))) {
+	if (!key.loadFromFile("Assets/img/keys.png", sf::IntRect(0, 0, 704, 64))) {
 		perror("failed to load keys image");
 		//scanf("%*c");
 	}
 	Texture door;
-	if (!door.loadFromFile("img/door.png", sf::IntRect(0, 0, 32, 32))) {
+	if (!door.loadFromFile("Assets/img/door.png", sf::IntRect(0, 0, 32, 32))) {
 		perror("failed to load door image");
 		//scanf("%*c");
 	}
@@ -933,17 +933,17 @@ int main(void) {
 	character MC;
 	character_initializer(&MC, "mc", 200, 200);
 	SoundBuffer walk;
-	if (!walk.loadFromFile("sound/walk.wav")) {
+	if (!walk.loadFromFile("Assets/Sound/walk.wav")) {
 		cout << "Error loading sound" << endl;
 		//scanf("%*c");
 	}
 	SoundBuffer bgm;
-	if (!bgm.loadFromFile("sound/bgm.ogg")) {
+	if (!bgm.loadFromFile("Assets/Sound/bgm.ogg")) {
 		cout << "Error loading sound" << endl;
 		//scanf("%*c");
 	}
 	SoundBuffer speech;
-	if (!speech.loadFromFile("sound/speech.wav")) {
+	if (!speech.loadFromFile("Assets/Sound/speech.wav")) {
 		cout << "Error loading sound" << endl;
 		//scanf("%*c");
 	}
