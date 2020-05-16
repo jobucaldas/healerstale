@@ -1,0 +1,23 @@
+SHELL=/bin/sh
+.SUFFIXES:
+.SUFFIXES: .cpp .o
+
+install: bin/healers
+
+binary: bin/healers
+	rm bin/main.o
+
+clean:
+	-rm bin/main.o bin/healers.exe bin/healers bin/icon.res
+
+icon.res: Assets/icon.rc
+	windres Assets/icon.rc -O coff -o Assets/icon.res
+
+bin/main-old.o: src/main-old.cpp
+	g++ -c src/main-old.cpp -o bin/main-old.o
+
+bin/healers: bin/main-old.o
+	g++ bin/main-old.o -o bin/healers -lsfml-graphics -lsfml-window -lsfml-audio -lsfml-system
+
+win: main.o icon.res
+	g++ bin/main.o Assets/icon.res -o bin/healers -lsfml-graphics -lsfml-window -lsfml-audio -lsfml-system
